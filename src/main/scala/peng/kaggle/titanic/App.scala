@@ -12,7 +12,6 @@ object App {
   def main(args: Array[String]): Unit = {
     val inputPath = "src/main/resources/data/titanic/train.csv"
 
-
     //guessed,difficultyLevel,confidenceAverage,choiceChanged,differentChoices,underExpectedTime
     val customSchema = StructType(Array(
       StructField("PassengerId", IntegerType, false),
@@ -20,7 +19,7 @@ object App {
       StructField("Pclass", IntegerType, false),
       StructField("Name", StringType, false),
       StructField("Sex", StringType, false),
-      StructField("Age", DoubleType, false),
+      StructField("Age", DoubleType, true),
       StructField("SibSp", IntegerType, false),
       StructField("Parch", IntegerType, false),
       StructField("Ticket", StringType, false),
@@ -39,27 +38,31 @@ object App {
 
     inputDF.show(10, false)
 
+    SparkUtils.sql("select * from inputTable where age is null")
+
     SparkUtils.sql("select * from inputTable where survived = 1")
 
     val convertSex = udf { sex: String => sex == "male"}
 
-    val convertAge = udf { age: Double => age match {
-      case d:Double => d
+    val convertAge = udf {
+      age: String => Option(age) match {
+      case Some(d) => d.toDouble
       case _ => 0
-    } }
+      }
+    }
 
-    val convertedInpuDF = inputDF.withColumn("Sex2", convertSex(col("Sex"))).withColumn("Age2", convertSex(col("Age")))
+    val convertedInpuDF = inputDF.withColumn("Sex2", convertSex(col("Sex"))).withColumn("Age2", convertAge(col("Age")))
 
     convertedInpuDF.show
 
-    val Array(training, test) = inputDF.randomSplit(Array(0.7, 0.3), seed = 12345)
+    val Array(training, test) = convertedInpuDF.randomSplit(Array(0.7, 0.3), seed = 12345)
 
 
     val assembler = new VectorAssembler()
       .setInputCols(Array(
         "Pclass",
         //"Sex",
-        "Age",
+        "Age2",
         "SibSp",
         "Parch",
         //"Ticket",
