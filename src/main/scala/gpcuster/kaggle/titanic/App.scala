@@ -4,8 +4,8 @@ import org.apache.spark.sql.types._
 import peng.kaggle.util.SparkUtils
 import org.apache.spark.sql.functions._
 import org.apache.spark.ml.feature.VectorAssembler
-
-import org.apache.spark.ml.classification.{LogisticRegression, DecisionTreeClassifier, NaiveBayes, RandomForestClassifier}
+import org.apache.spark.ml.classification.{DecisionTreeClassifier, LogisticRegression, NaiveBayes, RandomForestClassifier}
+import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
 import org.apache.spark.ml.{Estimator, Transformer}
 
 object App {
@@ -61,7 +61,7 @@ object App {
     val assembler = new VectorAssembler()
       .setInputCols(Array(
         "Pclass",
-        //"Sex",
+        "Sex2",
         "Age2",
         "SibSp",
         "Parch",
@@ -101,5 +101,20 @@ object App {
     }
 
     val model = estimator.asInstanceOf[Estimator[_]].fit(trainingWithFeatures).asInstanceOf[Transformer]
+
+    val prediction = model.transform(testWithFeatures)
+
+    prediction.show(100, false)
+
+    val evaluator = new MulticlassClassificationEvaluator()
+      .setLabelCol("Survived")
+      .setPredictionCol("prediction")
+      .setMetricName("accuracy")
+
+    val trainingAccuracy = evaluator.evaluate(model.transform(trainingWithFeatures))
+    println("Training Data Set Accuracy: " + trainingAccuracy)
+
+    val testAccuracy = evaluator.evaluate(prediction)
+    println("Test Data Set Accuracy: " + testAccuracy)
   }
 }
