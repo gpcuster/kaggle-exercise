@@ -1,4 +1,4 @@
-package peng.kaggle.util
+package gpcuster.kaggle.util
 
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
