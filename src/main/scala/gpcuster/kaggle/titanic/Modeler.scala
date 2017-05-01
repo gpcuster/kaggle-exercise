@@ -1,12 +1,11 @@
 package gpcuster.kaggle.titanic
 
-import org.apache.spark.sql.types._
 import gpcuster.kaggle.util.SparkUtils
-import org.apache.spark.sql.functions._
-import org.apache.spark.ml.feature.VectorAssembler
 import org.apache.spark.ml.classification.{DecisionTreeClassifier, LogisticRegression, NaiveBayes, RandomForestClassifier}
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
-import org.apache.spark.ml.{Estimator, Transformer}
+import org.apache.spark.ml.feature.{SQLTransformer, VectorAssembler}
+import org.apache.spark.ml.{Estimator, Pipeline, Transformer}
+import org.apache.spark.sql.types._
 
 object Modeler {
   def getModel(): Transformer = {
@@ -41,21 +40,16 @@ object Modeler {
 
     SparkUtils.sql("select * from inputTable where survived = 1")
 
-    val convertSex = udf { sex: String => sex == "male"}
+    SparkUtils.getSpark().udf.register("convertSex", (sex: String) => sex == "male")
+    SparkUtils.getSpark().udf.register("convertDouble", (age: String) => Option(age) match {
+      case Some(d) => d.toDouble
+      case _ => 0
+    })
 
-    val convertAge = udf {
-      age: String => Option(age) match {
-        case Some(d) => d.toDouble
-        case _ => 0
-      }
-    }
+    val sqlTrans = new SQLTransformer().setStatement(
+      "SELECT *, convertSex(Sex) AS Sex2, convertDouble(Age) AS Age2, convertDouble(Fare) AS Fare2 FROM __THIS__")
 
-    val convertedInpuDF = inputDF.withColumn("Sex2", convertSex(col("Sex"))).withColumn("Age2", convertAge(col("Age")))
-
-    convertedInpuDF.show
-
-    val Array(training, test) = convertedInpuDF.randomSplit(Array(0.7, 0.3), seed = 12345)
-
+    val Array(training, test) = inputDF.randomSplit(Array(0.7, 0.3), seed = 12345)
 
     val assembler = new VectorAssembler()
       .setInputCols(Array(
@@ -65,16 +59,11 @@ object Modeler {
         "SibSp",
         "Parch",
         //"Ticket",
-        "Fare"
+        "Fare2"
         //"Cabin",
         //"Embarked"
       ))
       .setOutputCol("features")
-
-    val trainingWithFeatures = assembler.transform(training)
-    val testWithFeatures = assembler.transform(test)
-
-    trainingWithFeatures.show(10, false)
 
     val alg = "lr"
 
@@ -99,9 +88,14 @@ object Modeler {
         .setFeaturesCol("features")
     }
 
-    val model = estimator.asInstanceOf[Estimator[_]].fit(trainingWithFeatures).asInstanceOf[Transformer]
+    val trainingEstimator = estimator.asInstanceOf[Estimator[_]]
 
-    val prediction = model.transform(testWithFeatures)
+    val pipeline = new Pipeline()
+      .setStages(Array(sqlTrans, assembler, trainingEstimator))
+
+    val pipelineModel = pipeline.fit(training)
+
+    val prediction = pipelineModel.transform(test)
 
     prediction.show(100, false)
 
@@ -110,12 +104,12 @@ object Modeler {
       .setPredictionCol("prediction")
       .setMetricName("accuracy")
 
-    val trainingAccuracy = evaluator.evaluate(model.transform(trainingWithFeatures))
+    val trainingAccuracy = evaluator.evaluate(pipelineModel.transform(training))
     println("Training Data Set Accuracy: " + trainingAccuracy)
 
     val testAccuracy = evaluator.evaluate(prediction)
     println("Test Data Set Accuracy: " + testAccuracy)
 
-    model
+    pipelineModel
   }
 }

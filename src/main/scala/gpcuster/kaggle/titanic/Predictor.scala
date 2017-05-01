@@ -34,39 +34,7 @@ object Predictor {
       .schema(customSchema)
       .load(inputPath)
 
-    inputDF.createOrReplaceTempView("inputTable")
-
-    val convertSex = udf { sex: String => sex == "male"}
-
-    val convertAge = udf {
-      age: String => Option(age) match {
-        case Some(d) => d.toDouble
-        case _ => 0
-      }
-    }
-
-    val convertedInpuDF = inputDF
-      .withColumn("Sex2", convertSex(col("Sex")))
-      .withColumn("Age2", convertAge(col("Age")))
-      .withColumn("Fare2", convertAge(col("Fare")))
-
-    val assembler = new VectorAssembler()
-      .setInputCols(Array(
-        "Pclass",
-        "Sex2",
-        "Age2",
-        "SibSp",
-        "Parch",
-        //"Ticket",
-        "Fare2"
-        //"Cabin",
-        //"Embarked"
-      ))
-      .setOutputCol("features")
-
-    val inputWithFeatures = assembler.transform(convertedInpuDF)
-
-    val prediction = model.transform(inputWithFeatures)
+    val prediction = model.transform(inputDF)
 
     prediction.createOrReplaceTempView("outputTable")
 
