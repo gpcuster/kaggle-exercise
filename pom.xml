@@ -28,6 +28,12 @@
     </dependency>
 
     <dependency>
+      <groupId>org.vegas-viz</groupId>
+      <artifactId>vegas-spark_2.11</artifactId>
+      <version>0.3.9</version>
+    </dependency>
+
+    <dependency>
       <groupId>com.databricks</groupId>
       <artifactId>spark-csv_2.11</artifactId>
       <version>1.5.0</version>
