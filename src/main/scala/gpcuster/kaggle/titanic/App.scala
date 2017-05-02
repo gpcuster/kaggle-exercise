@@ -9,7 +9,6 @@ object App {
   def main(args: Array[String]): Unit = {
 
     val trainingPath = "src/main/resources/data/titanic/train.csv"
-
     val trainingSchema = StructType(Array(
       StructField("PassengerId", IntegerType, false),
       StructField("Survived", IntegerType, false),
@@ -25,21 +24,9 @@ object App {
       StructField("Embarked", StringType, false)
     )
     )
-
     val trainingDF = SparkUtils.readCSV(trainingPath, trainingSchema)
 
-    trainingDF.createOrReplaceTempView("inputTable")
-
-    trainingDF.show(10, false)
-
-    SparkUtils.sql("select * from inputTable where age is null")
-
-    SparkUtils.sql("select * from inputTable where survived = 1")
-
-    val model = Modeler.getModel(trainingDF)
-
     val testingPath = "src/main/resources/data/titanic/test.csv"
-
     val testingSchema = StructType(Array(
       StructField("PassengerId", IntegerType, false),
       //StructField("Survived", IntegerType, false),
@@ -55,14 +42,17 @@ object App {
       StructField("Embarked", StringType, false)
     )
     )
-
     val testingDF = SparkUtils.readCSV(testingPath, testingSchema)
 
-    val outputDF = Predictor.getOutputDF(testingDF, model)
+    Visualizer.visualize(trainingDF)
 
-    val df:SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss")
-    val runId:String = df.format(System.currentTimeMillis())
 
-    SparkUtils.writeCSV("output/titanic/" + runId, outputDF)
+//    val model = Modeler.getModel(trainingDF)
+//    val outputDF = Predictor.getOutputDF(testingDF, model)
+//
+//    val df:SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss")
+//    val runId:String = df.format(System.currentTimeMillis())
+//
+//    SparkUtils.writeCSV("output/titanic/" + runId, outputDF)
   }
 }

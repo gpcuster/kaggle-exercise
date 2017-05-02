@@ -13,6 +13,10 @@ object SparkUtils {
   }
 
   def sql(sql: String) = {
+    getSpark().sql(sql)
+  }
+
+  def sqlPrint(sql: String) = {
     getSpark().sql(sql).collect().foreach(println)
   }
 

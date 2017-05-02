@@ -1,7 +1,8 @@
 package gpcuster
 
+import gpcuster.kaggle.util.SparkUtils
 import vegas._
-import vegas.data.External._
+import vegas.sparkExt._
 
 object VegasExample {
   def main(args: Array[String]): Unit = {
@@ -13,6 +14,20 @@ object VegasExample {
       )).
       encodeX("a", Ordinal).
       encodeY("b", Quantitative).
+      mark(Bar).
+      show
+
+    val df = SparkUtils.getSpark().createDataFrame(Seq(
+      ("a", 1.0),
+      ("b", 120.0),
+      ("c", 23.1),
+      ("d", 56.1)
+    )).toDF("label", "count")
+
+    Vegas("A simple bar chart with spark dataframe data.").
+      withDataFrame(df).
+      encodeX("label", Ordinal).
+      encodeY("count", Quantitative).
       mark(Bar).
       show
   }
