@@ -8,6 +8,8 @@ import org.apache.spark.sql.types._
 object App {
   def main(args: Array[String]): Unit = {
 
+    UDFs.registerUDFs
+
     val trainingPath = "src/main/resources/data/titanic/train.csv"
     val trainingSchema = StructType(Array(
       StructField("PassengerId", IntegerType, false),
@@ -44,15 +46,15 @@ object App {
     )
     val testingDF = SparkUtils.readCSV(testingPath, testingSchema)
 
-    Visualizer.visualize(trainingDF)
+//    Visualizer.visualize(trainingDF)
 
 
-//    val model = Modeler.getModel(trainingDF)
-//    val outputDF = Predictor.getOutputDF(testingDF, model)
-//
-//    val df:SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss")
-//    val runId:String = df.format(System.currentTimeMillis())
-//
-//    SparkUtils.writeCSV("output/titanic/" + runId, outputDF)
+    val model = Modeler.getModel(trainingDF)
+    val outputDF = Predictor.getOutputDF(testingDF, model)
+
+    val df:SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss")
+    val runId:String = df.format(System.currentTimeMillis())
+
+    SparkUtils.writeCSV("output/titanic/" + runId, outputDF)
   }
 }

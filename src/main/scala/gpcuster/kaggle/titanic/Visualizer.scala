@@ -14,19 +14,30 @@ object Visualizer {
 
     inputDF.describe().show()
 
+    // Pclass
     Vegas("A simple bar chart showing relation bettween Pclass and SurvivedRate.").
       withDataFrame(SparkUtils.sql("select Pclass, avg(Survived) as SurvivedRate from inputTable group by Pclass")).
-      encodeX("Pclass", Ordinal).
+      encodeX("Pclass", Nominal).
       encodeY("SurvivedRate", Quantitative).
       mark(Bar).
       show
 
-    SparkUtils.getSpark().udf.register("extractTitle", (name: String) => {
-      val startIndex = name.indexOf(", ")
-      val endIndex = name.indexOf(". ", startIndex)
+    // Embarked
+    Vegas("A simple bar chart showing Embarked count.").
+      withDataFrame(SparkUtils.sql("select Embarked, count(1) as CNT from inputTable group by Embarked")).
+      encodeX("Embarked", Nominal).
+      encodeY("CNT", Quantitative).
+      mark(Bar).
+      show
 
-      name.substring(startIndex + 2, endIndex)
-    })
+    Vegas("A simple bar chart showing relation bettween Embarked and SurvivedRate.").
+      withDataFrame(SparkUtils.sql("select Embarked, avg(Survived) as SurvivedRate from inputTable group by Embarked")).
+      encodeX("Embarked", Nominal).
+      encodeY("SurvivedRate", Quantitative).
+      mark(Bar).
+      show
+
+    // TODO: Name -> Title
 
     SparkUtils.sql("select extractTitle(Name) as title, count(1) from inputTable group by extractTitle(Name)").show
 

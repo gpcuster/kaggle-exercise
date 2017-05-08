@@ -1,6 +1,5 @@
 package gpcuster.kaggle.titanic
 
-import gpcuster.kaggle.util.SparkUtils
 import org.apache.spark.ml.classification.{DecisionTreeClassifier, LogisticRegression, NaiveBayes, RandomForestClassifier}
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
 import org.apache.spark.ml.feature.{SQLTransformer, VectorAssembler}
@@ -9,15 +8,13 @@ import org.apache.spark.sql.DataFrame
 
 object Modeler {
   def getModel(inputDF: DataFrame): Transformer = {
-
-    SparkUtils.getSpark().udf.register("convertSex", (sex: String) => sex == "male")
-    SparkUtils.getSpark().udf.register("convertDouble", (age: String) => Option(age) match {
-      case Some(d) => d.toDouble
-      case _ => 0
-    })
-
     val sqlTrans = new SQLTransformer().setStatement(
-      "SELECT *, convertSex(Sex) AS Sex2, convertDouble(Age) AS Age2, convertDouble(Fare) AS Fare2 FROM __THIS__")
+      "SELECT *, " +
+        "convertSex(Sex) AS Sex2, " +
+        "convertDouble(Age) AS Age2, " +
+        "convertDouble(Fare) AS Fare2, " +
+        "convertEmbarked(Embarked) AS Embarked2 " +
+        "FROM __THIS__")
 
     val Array(training, test) = inputDF.randomSplit(Array(0.7, 0.3), seed = 12345)
 
@@ -29,9 +26,9 @@ object Modeler {
         "SibSp",
         "Parch",
         //"Ticket",
-        "Fare2"
+        "Fare2",
         //"Cabin",
-        //"Embarked"
+        "Embarked2"
       ))
       .setOutputCol("features")
 
