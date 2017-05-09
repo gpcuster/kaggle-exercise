@@ -18,10 +18,16 @@ object UDFs {
       case _ => 1
     })
 
+    SparkUtils.getSpark().udf.register("pClass1", (pClass: String) => pClass == "1")
+    SparkUtils.getSpark().udf.register("pClass2", (pClass: String) => pClass == "2")
+
+    SparkUtils.getSpark().udf.register("embarkedC", (embarked: String) => embarked == "C")
+    SparkUtils.getSpark().udf.register("embarkedQ", (embarked: String) => embarked == "Q")
+
     SparkUtils.getSpark().udf.register("convertSex", (sex: String) => sex == "male")
 
     SparkUtils.getSpark().udf.register("convertDouble", (age: String) => Option(age) match {
-      case Some(d) => d.toDouble
+      case Some(d) => d.toDouble.toInt
       case _ => 0
     })
   }

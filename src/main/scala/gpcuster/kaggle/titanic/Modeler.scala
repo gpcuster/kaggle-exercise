@@ -13,22 +13,27 @@ object Modeler {
         "convertSex(Sex) AS Sex2, " +
         "convertDouble(Age) AS Age2, " +
         "convertDouble(Fare) AS Fare2, " +
-        "convertEmbarked(Embarked) AS Embarked2 " +
+        "pClass1(Pclass) AS pClass1, " +
+        "pClass2(Pclass) AS pClass2, " +
+        "embarkedQ(Embarked) AS embarkedQ, " +
+        "embarkedC(Embarked) AS embarkedC " +
         "FROM __THIS__")
 
     val Array(training, test) = inputDF.randomSplit(Array(0.7, 0.3), seed = 12345)
 
     val assembler = new VectorAssembler()
       .setInputCols(Array(
-        "Pclass",
+        "pClass1",
+        "pClass2",
         "Sex2",
         "Age2",
         "SibSp",
         "Parch",
         //"Ticket",
-        "Fare2",
+        "Fare2"
         //"Cabin",
-        "Embarked2"
+        ,"embarkedQ"
+        ,"embarkedC"
       ))
       .setOutputCol("features")
 

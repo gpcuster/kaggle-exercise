@@ -4,6 +4,7 @@ import gpcuster.kaggle.util.SparkUtils
 import org.apache.spark.sql.DataFrame
 import vegas._
 import vegas.sparkExt._
+import vegas.spec.Spec.AggregateOpEnums.{Average, Count}
 
 object Visualizer {
   def visualize(inputDF: DataFrame) = {
@@ -35,6 +36,21 @@ object Visualizer {
       encodeX("Embarked", Nominal).
       encodeY("SurvivedRate", Quantitative).
       mark(Bar).
+      show
+
+    // Fare
+    Vegas("A simple bar chart showing relation bettween Fare and SurvivedRate.").
+      withDataFrame(SparkUtils.sql("select cast(Fare as INT) as Fare_INT, avg(Survived) as SurvivedRate from inputTable group by cast(Fare as INT)")).
+      encodeX("Fare_INT", Quantitative).
+      encodeY("SurvivedRate", Quantitative).
+      mark(Bar).
+      show
+
+    Vegas("A simple bar chart with bin X showing relation bettween Fare and SurvivedRate.").
+      withDataFrame(SparkUtils.sql("select cast(Fare as INT) as Fare_INT, avg(Survived) as SurvivedRate from inputTable group by cast(Fare as INT)")).
+      encodeX("Fare_INT", Quantitative, bin=Bin(maxbins=10.0)).
+      encodeY("SurvivedRate", Quantitative, aggregate = Average).
+      mark(Point).
       show
 
     // TODO: Name -> Title
