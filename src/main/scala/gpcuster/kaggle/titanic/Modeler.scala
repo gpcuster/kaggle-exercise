@@ -10,9 +10,12 @@ object Modeler {
   def getModel(inputDF: DataFrame): Transformer = {
     val sqlTrans = new SQLTransformer().setStatement(
       "SELECT *, " +
-        "convertSex(Sex) AS Sex2, " +
+        "child(convertDouble(Age)) AS child, " +
+        "male(Sex, convertDouble(Age)) AS male, " +
+        "female(Sex, convertDouble(Age)) AS female, " +
         "convertDouble(Age) AS Age2, " +
         "convertDouble(Fare) AS Fare2, " +
+        "hasFamily(SibSp, Parch) AS hasFamily, " +
         "pClass1(Pclass) AS pClass1, " +
         "pClass2(Pclass) AS pClass2, " +
         "embarkedQ(Embarked) AS embarkedQ, " +
@@ -25,10 +28,11 @@ object Modeler {
       .setInputCols(Array(
         "pClass1",
         "pClass2",
-        "Sex2",
+        "child",
+        "male",
+        "female",
         "Age2",
-        "SibSp",
-        "Parch",
+        "hasFamily",
         //"Ticket",
         "Fare2"
         //"Cabin",
@@ -37,7 +41,7 @@ object Modeler {
       ))
       .setOutputCol("features")
 
-    val alg = "lr"
+    val alg = "rf"//"lr"
 
     val estimator = if (alg == "lr") {
       new LogisticRegression()
@@ -53,7 +57,7 @@ object Modeler {
       new RandomForestClassifier()
         .setLabelCol("Survived")
         .setFeaturesCol("features")
-        .setNumTrees(10)
+        .setNumTrees(20)
     } else if (alg == "nb") {
       new NaiveBayes()
         .setLabelCol("Survived")

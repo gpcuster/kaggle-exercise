@@ -46,7 +46,7 @@ object App {
     )
     val testingDF = SparkUtils.readCSV(testingPath, testingSchema)
 
-//    Visualizer.visualize(trainingDF)
+    Visualizer.visualize(trainingDF)
 
 
     val model = Modeler.getModel(trainingDF)

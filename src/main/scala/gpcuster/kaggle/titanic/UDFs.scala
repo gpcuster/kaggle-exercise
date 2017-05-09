@@ -24,7 +24,11 @@ object UDFs {
     SparkUtils.getSpark().udf.register("embarkedC", (embarked: String) => embarked == "C")
     SparkUtils.getSpark().udf.register("embarkedQ", (embarked: String) => embarked == "Q")
 
-    SparkUtils.getSpark().udf.register("convertSex", (sex: String) => sex == "male")
+    SparkUtils.getSpark().udf.register("hasFamily", (SibSp: Int, Parch: Int) => SibSp + Parch > 0)
+
+    SparkUtils.getSpark().udf.register("child", (age: Int) => age < 16)
+    SparkUtils.getSpark().udf.register("male", (sex: String, age: Int) => age>= 16 && sex == "male")
+    SparkUtils.getSpark().udf.register("female", (sex: String, age: Int) => age>= 16 && sex == "female")
 
     SparkUtils.getSpark().udf.register("convertDouble", (age: String) => Option(age) match {
       case Some(d) => d.toDouble.toInt

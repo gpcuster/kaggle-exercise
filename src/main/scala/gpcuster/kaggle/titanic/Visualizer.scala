@@ -40,17 +40,42 @@ object Visualizer {
 
     // Fare
     Vegas("A simple bar chart showing relation bettween Fare and SurvivedRate.").
-      withDataFrame(SparkUtils.sql("select cast(Fare as INT) as Fare_INT, avg(Survived) as SurvivedRate from inputTable group by cast(Fare as INT)")).
+      withDataFrame(SparkUtils.sql("select convertDouble(Fare) as Fare_INT, avg(Survived) as SurvivedRate from inputTable group by convertDouble(Fare)")).
       encodeX("Fare_INT", Quantitative).
       encodeY("SurvivedRate", Quantitative).
       mark(Bar).
       show
 
     Vegas("A simple bar chart with bin X showing relation bettween Fare and SurvivedRate.").
-      withDataFrame(SparkUtils.sql("select cast(Fare as INT) as Fare_INT, avg(Survived) as SurvivedRate from inputTable group by cast(Fare as INT)")).
+      withDataFrame(SparkUtils.sql("select convertDouble(Fare) as Fare_INT, avg(Survived) as SurvivedRate from inputTable group by convertDouble(Fare)")).
       encodeX("Fare_INT", Quantitative, bin=Bin(maxbins=10.0)).
       encodeY("SurvivedRate", Quantitative, aggregate = Average).
       mark(Point).
+      show
+
+    // Age
+    Vegas("A simple bar chart showing relation bettween Age and Survived.").
+      withDataFrame(SparkUtils.sql("select convertDouble(Age) as Age_INT, Survived from inputTable")).
+      encodeX("Age_INT", Quantitative, bin=Bin(maxbins=50.0)).
+      encodeY("Age_INT", Quantitative, aggregate = Count).
+      mark(Line).
+      encodeColor("Survived", Nominal).
+      show
+
+    // Family
+    Vegas("A simple bar chart showing relation bettween Family and SurvivedRate.").
+      withDataFrame(SparkUtils.sql("select hasFamily(SibSp, Parch) AS hasFamily, avg(Survived) as SurvivedRate from inputTable group by hasFamily(SibSp, Parch)")).
+      encodeX("hasFamily", Nominal).
+      encodeY("SurvivedRate", Quantitative).
+      mark(Bar).
+      show
+
+    // Sex
+    Vegas("A simple bar chart showing relation bettween Sex and SurvivedRate.").
+      withDataFrame(SparkUtils.sql("select Sex, avg(Survived) as SurvivedRate from inputTable group by Sex")).
+      encodeX("Sex", Nominal).
+      encodeY("SurvivedRate", Quantitative).
+      mark(Bar).
       show
 
     // TODO: Name -> Title
