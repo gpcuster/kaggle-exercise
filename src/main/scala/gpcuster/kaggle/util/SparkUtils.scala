@@ -1,10 +1,14 @@
 package gpcuster.kaggle.util
 
+import java.text.SimpleDateFormat
+
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.types.StructType
 
 object SparkUtils {
+  lazy val sdf:SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss")
+
   def getSpark() = {
     val conf = new SparkConf().setMaster("local[2]")
     val builder = SparkSession.builder.config(conf)
@@ -35,4 +39,15 @@ object SparkUtils {
       .save(path)
   }
 
+  def generateSubmissionFile(path: String, df: DataFrame) = {
+    val runId:String = sdf.format(System.currentTimeMillis())
+
+    val outputPath = if (path.endsWith("/")) {
+      path + runId
+    } else {
+      path + "/" + runId
+    }
+
+    SparkUtils.writeCSV(outputPath, df)
+  }
 }
