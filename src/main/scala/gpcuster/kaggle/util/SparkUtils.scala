@@ -20,13 +20,12 @@ object SparkUtils {
     getSpark().sql(sql).collect().foreach(println)
   }
 
-  def readCSV(path: String, schema: StructType) = {
-    val df = SparkUtils.getSpark().read.format("com.databricks.spark.csv")
+  def readCSV(path: String, schema: StructType = null) = {
+    SparkUtils.getSpark().read.format("com.databricks.spark.csv")
       .option("header", "true") // Use first line of all files as header
+      .option("inferSchema", "true") // Automatically infer data types
       .schema(schema)
       .load(path)
-
-    df
   }
 
   def writeCSV(path: String, df: DataFrame) = {
