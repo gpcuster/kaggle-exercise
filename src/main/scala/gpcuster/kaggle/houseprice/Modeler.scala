@@ -49,7 +49,7 @@ object Modeler {
       ,"OverallCond"
       ,"RoofStyle"
       ,"RoofMatl"
-      //,"Exterior1st" // Exterior2nd
+      ,"Exterior1st" // Exterior2nd
       ,"MasVnrType"
     )
     for (fieldName <- oneHotEncodingFields) {
