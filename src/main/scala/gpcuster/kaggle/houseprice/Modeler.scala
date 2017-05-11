@@ -1,11 +1,14 @@
 package gpcuster.kaggle.houseprice
 
+import gpcuster.kaggle.util.SparkUtils
 import org.apache.spark.ml.classification.{DecisionTreeClassifier, LogisticRegression, NaiveBayes, RandomForestClassifier}
 import org.apache.spark.ml.evaluation.{MulticlassClassificationEvaluator, RegressionEvaluator}
-import org.apache.spark.ml.feature.{SQLTransformer, VectorAssembler}
+import org.apache.spark.ml.feature.{OneHotEncoder, SQLTransformer, StringIndexer, VectorAssembler}
 import org.apache.spark.ml.regression.LinearRegression
-import org.apache.spark.ml.{Estimator, Pipeline, Transformer}
+import org.apache.spark.ml.{Estimator, Pipeline, PipelineStage, Transformer}
 import org.apache.spark.sql.DataFrame
+
+import scala.collection.mutable.ArrayBuffer
 
 object Modeler {
   def getModel(inputDF: DataFrame): Transformer = {
@@ -27,8 +30,37 @@ object Modeler {
 
     val Array(training, test) = inputDF.randomSplit(Array(0.7, 0.3), seed = 12345)
 
+    var encodedFieldNames = Array[String]()
+    var oneHotEncoders = Array[PipelineStage]()
+    val oneHotEncodingFields = Array(
+      "MSSubClass"
+//      ,"MSZoning"
+//      ,"Street"
+//      ,"LotShape"
+//      ,"LandContour"
+//      ,"Utilities"
+//      ,"LotConfig"
+//      ,"LandSlope"
+      //,"Neighborhood"
+      //,"Condition1" // Condition2
+      //,"BldgType"
+      //,"HouseStyle"
+      //,"OverallQual"
+      //,"OverallCond"
+      //,"RoofStyle"
+      //,"RoofMatl"
+      //,"Exterior1st" // Exterior2nd
+      //,"MasVnrType"
+    )
+    for (fieldName <- oneHotEncodingFields) {
+      val (encodedFieldName, encoder) = SparkUtils.oneHotEncoding(fieldName)
+
+      encodedFieldNames = encodedFieldNames ++ Array(encodedFieldName)
+      oneHotEncoders = oneHotEncoders ++ encoder
+    }
+
     val assembler = new VectorAssembler()
-      .setInputCols(Array(
+      .setInputCols(encodedFieldNames ++ Array(
         "LotArea"
         ,"YearBuilt"
         ,"MoSold"
@@ -37,11 +69,14 @@ object Modeler {
       ))
       .setOutputCol("features")
 
+    val sqlTransSkipMockupData = new SQLTransformer().setStatement(
+      "SELECT * FROM __THIS__ where Id > 0")
+
     val alg = "lr"
 
     val estimator = if (alg == "lr") {
       new LinearRegression()
-        .setMaxIter(100)
+        .setMaxIter(150)
         .setRegParam(0.000001)
         .setLabelCol(labelCol)
         .setFeaturesCol("features")
@@ -63,7 +98,7 @@ object Modeler {
     val trainingEstimator = estimator.asInstanceOf[Estimator[_]]
 
     val pipeline = new Pipeline()
-      .setStages(Array(assembler, trainingEstimator))
+      .setStages(oneHotEncoders ++ Array(sqlTransSkipMockupData, assembler, trainingEstimator))
 
     val pipelineModel = pipeline.fit(training)
 

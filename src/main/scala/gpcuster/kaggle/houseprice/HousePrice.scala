@@ -9,7 +9,7 @@ object HousePrice {
     val trainingDF = SparkUtils.readCSV("src/main/resources/data/house_price/train.csv")
     val testingDF = SparkUtils.readCSV("src/main/resources/data/house_price/test.csv")
 
-//    Visualizer.visualize(trainingDF)
+    Visualizer.visualize(trainingDF)
 
     val model = Modeler.getModel(trainingDF)
     val outputDF = Predictor.getOutputDF(testingDF, model)

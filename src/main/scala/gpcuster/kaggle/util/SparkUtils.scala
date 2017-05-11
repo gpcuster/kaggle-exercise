@@ -3,11 +3,14 @@ package gpcuster.kaggle.util
 import java.text.SimpleDateFormat
 
 import org.apache.spark.SparkConf
+import org.apache.spark.ml.feature.{OneHotEncoder, StringIndexer}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.types.StructType
 
 object SparkUtils {
   lazy val sdf:SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss")
+
+  val OneHotEncoderFieldSuffix = "OHE"
 
   def getSpark() = {
     val conf = new SparkConf().setMaster("local[2]")
@@ -49,5 +52,13 @@ object SparkUtils {
     }
 
     SparkUtils.writeCSV(outputPath, df)
+  }
+
+  def oneHotEncoding(fieldName: String) = {
+    val encodedFiledName = fieldName + OneHotEncoderFieldSuffix
+    val si = new StringIndexer().setHandleInvalid("error").setInputCol(fieldName).setOutputCol(fieldName + "SI")
+    val onehot = new OneHotEncoder().setInputCol(fieldName + "SI").setOutputCol(encodedFiledName)
+
+    (encodedFiledName, Array(si, onehot))
   }
 }
