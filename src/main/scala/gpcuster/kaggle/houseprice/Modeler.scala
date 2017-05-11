@@ -54,6 +54,15 @@ object Modeler {
       ,"ExterQual"
       ,"ExterCond"
       ,"Foundation"
+      ,"BsmtQual"
+      ,"BsmtCond"
+      ,"BsmtExposure"
+      ,"BsmtFinType1" // BsmtFinType2
+      ,"Heating"
+      ,"HeatingQC"
+      ,"CentralAir"
+      ,"Electrical"
+      ,"KitchenQual"
     )
     for (fieldName <- oneHotEncodingFields) {
       val (encodedFieldName, encoder) = SparkUtils.oneHotEncoding(fieldName)
