@@ -1,6 +1,5 @@
 package gpcuster.kaggle.houseprice
 
-import gpcuster.kaggle.titanic.UDFs
 import gpcuster.kaggle.util.SparkUtils
 
 object HousePrice {
