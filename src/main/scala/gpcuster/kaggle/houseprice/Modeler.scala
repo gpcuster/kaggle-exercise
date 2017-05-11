@@ -11,11 +11,29 @@ object Modeler {
   def getModel(inputDF: DataFrame): Transformer = {
     val labelCol = "SalePrice"
 
+    val sqlTrans = new SQLTransformer().setStatement(
+      "SELECT *, " +
+        "child(convertDouble(Age)) AS child, " +
+        "male(Sex, convertDouble(Age)) AS male, " +
+        "female(Sex, convertDouble(Age)) AS female, " +
+        "convertDouble(Age) AS Age2, " +
+        "convertDouble(Fare) AS Fare2, " +
+        "hasFamily(SibSp, Parch) AS hasFamily, " +
+        "pClass1(Pclass) AS pClass1, " +
+        "pClass2(Pclass) AS pClass2, " +
+        "embarkedQ(Embarked) AS embarkedQ, " +
+        "embarkedC(Embarked) AS embarkedC " +
+        "FROM __THIS__")
+
     val Array(training, test) = inputDF.randomSplit(Array(0.7, 0.3), seed = 12345)
 
     val assembler = new VectorAssembler()
       .setInputCols(Array(
         "LotArea"
+        ,"YearBuilt"
+        ,"MoSold"
+        ,"YrSold"
+        ,"MiscVal"
       ))
       .setOutputCol("features")
 
