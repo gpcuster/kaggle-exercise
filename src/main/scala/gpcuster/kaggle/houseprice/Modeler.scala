@@ -34,23 +34,23 @@ object Modeler {
     var oneHotEncoders = Array[PipelineStage]()
     val oneHotEncodingFields = Array(
       "MSSubClass"
-//      ,"MSZoning"
-//      ,"Street"
-//      ,"LotShape"
-//      ,"LandContour"
-//      ,"Utilities"
-//      ,"LotConfig"
-//      ,"LandSlope"
-      //,"Neighborhood"
-      //,"Condition1" // Condition2
-      //,"BldgType"
-      //,"HouseStyle"
-      //,"OverallQual"
-      //,"OverallCond"
-      //,"RoofStyle"
-      //,"RoofMatl"
+      ,"MSZoning"
+      ,"Street"
+      ,"LotShape"
+      ,"LandContour"
+      ,"Utilities"
+      ,"LotConfig"
+      ,"LandSlope"
+      ,"Neighborhood"
+      ,"Condition1" // Condition2
+      ,"BldgType"
+      ,"HouseStyle"
+      ,"OverallQual"
+      ,"OverallCond"
+      ,"RoofStyle"
+      ,"RoofMatl"
       //,"Exterior1st" // Exterior2nd
-      //,"MasVnrType"
+      ,"MasVnrType"
     )
     for (fieldName <- oneHotEncodingFields) {
       val (encodedFieldName, encoder) = SparkUtils.oneHotEncoding(fieldName)
