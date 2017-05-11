@@ -63,6 +63,18 @@ object Modeler {
       ,"CentralAir"
       ,"Electrical"
       ,"KitchenQual"
+      ,"Functional"
+      ,"FireplaceQu"
+//      ,"GarageType"
+//      ,"GarageFinish"
+//      ,"GarageQual"
+//      ,"GarageCond"
+//      ,"PavedDrive"
+//      ,"PoolQC"
+      ,"Fence"
+      ,"MiscFeature"
+      ,"SaleType"
+      ,"SaleCondition"
     )
     for (fieldName <- oneHotEncodingFields) {
       val (encodedFieldName, encoder) = SparkUtils.oneHotEncoding(fieldName)
