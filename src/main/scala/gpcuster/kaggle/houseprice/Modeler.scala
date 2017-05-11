@@ -51,6 +51,9 @@ object Modeler {
       ,"RoofMatl"
       ,"Exterior1st" // Exterior2nd
       ,"MasVnrType"
+      ,"ExterQual"
+      ,"ExterCond"
+      ,"Foundation"
     )
     for (fieldName <- oneHotEncodingFields) {
       val (encodedFieldName, encoder) = SparkUtils.oneHotEncoding(fieldName)
