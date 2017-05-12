@@ -1,14 +1,12 @@
 package gpcuster.kaggle.houseprice
 
 import gpcuster.kaggle.util.Utils
-import org.apache.spark.ml.classification.{DecisionTreeClassifier, LogisticRegression, NaiveBayes, RandomForestClassifier}
-import org.apache.spark.ml.evaluation.{MulticlassClassificationEvaluator, RegressionEvaluator}
-import org.apache.spark.ml.feature.{OneHotEncoder, SQLTransformer, StringIndexer, VectorAssembler}
+import org.apache.spark.ml.classification.{DecisionTreeClassifier, NaiveBayes, RandomForestClassifier}
+import org.apache.spark.ml.evaluation.RegressionEvaluator
+import org.apache.spark.ml.feature.{SQLTransformer, VectorAssembler}
 import org.apache.spark.ml.regression.LinearRegression
 import org.apache.spark.ml.{Estimator, Pipeline, PipelineStage, Transformer}
 import org.apache.spark.sql.DataFrame
-
-import scala.collection.mutable.ArrayBuffer
 
 object Modeler {
   def getModel(inputDF: DataFrame): Transformer = {
@@ -54,11 +52,11 @@ object Modeler {
       ,"KitchenQual"
       ,"Functional"
       ,"FireplaceQu"
-//      ,"GarageType"
-//      ,"GarageFinish"
+      ,"GarageType"
+      ,"GarageFinish"
 //      ,"GarageQual"
 //      ,"GarageCond"
-//      ,"PavedDrive"
+      ,"PavedDrive"
 //      ,"PoolQC"
       ,"Fence"
       ,"MiscFeature"
@@ -80,6 +78,29 @@ object Modeler {
       ,"MasVnrArea"
       ,"BsmtFinSF1"
       ,"BsmtFinSF2"
+      ,"BsmtUnfSF"
+      ,"TotalBsmtSF"
+      ,"1stFlrSF"
+      ,"2ndFlrSF"
+      ,"LowQualFinSF"
+      ,"GrLivArea"
+      ,"BsmtFullBath"
+      ,"BsmtHalfBath"
+      ,"FullBath"
+      ,"HalfBath"
+      ,"BedroomAbvGr"
+      ,"KitchenAbvGr"
+      ,"TotRmsAbvGrd"
+      ,"Fireplaces"
+      ,"GarageYrBlt"
+      ,"GarageCars"
+      ,"GarageArea"
+      ,"WoodDeckSF"
+      ,"OpenPorchSF"
+      ,"EnclosedPorch"
+      ,"3SsnPorch"
+      ,"ScreenPorch"
+      ,"PoolArea"
       ,"MoSold"
       ,"YrSold"
       ,"MiscVal"
