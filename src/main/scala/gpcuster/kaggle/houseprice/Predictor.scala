@@ -8,7 +8,8 @@ object Predictor {
   def getOutputDF(inputDF: DataFrame, model: Transformer): DataFrame = {
     val prediction = model.transform(inputDF)
 
-    prediction.createOrReplaceTempView("outputTable")
+    val negativePredictionCount = prediction.where("prediction <= 0").count()
+    println("Prediction Data Set Negative Prediction Count: " + negativePredictionCount)
 
     val convertPrediction = udf {
       prediction: Double => prediction match {

@@ -1,6 +1,6 @@
 package gpcuster.kaggle.houseprice
 
-import gpcuster.kaggle.util.SparkUtils
+import gpcuster.kaggle.util.Utils
 import org.apache.spark.ml.classification.{DecisionTreeClassifier, LogisticRegression, NaiveBayes, RandomForestClassifier}
 import org.apache.spark.ml.evaluation.{MulticlassClassificationEvaluator, RegressionEvaluator}
 import org.apache.spark.ml.feature.{OneHotEncoder, SQLTransformer, StringIndexer, VectorAssembler}
@@ -13,20 +13,6 @@ import scala.collection.mutable.ArrayBuffer
 object Modeler {
   def getModel(inputDF: DataFrame): Transformer = {
     val labelCol = "SalePrice"
-
-    val sqlTrans = new SQLTransformer().setStatement(
-      "SELECT *, " +
-        "child(convertDouble(Age)) AS child, " +
-        "male(Sex, convertDouble(Age)) AS male, " +
-        "female(Sex, convertDouble(Age)) AS female, " +
-        "convertDouble(Age) AS Age2, " +
-        "convertDouble(Fare) AS Fare2, " +
-        "hasFamily(SibSp, Parch) AS hasFamily, " +
-        "pClass1(Pclass) AS pClass1, " +
-        "pClass2(Pclass) AS pClass2, " +
-        "embarkedQ(Embarked) AS embarkedQ, " +
-        "embarkedC(Embarked) AS embarkedC " +
-        "FROM __THIS__")
 
     val Array(training, test) = inputDF.randomSplit(Array(0.7, 0.3), seed = 12345)
 
@@ -76,16 +62,23 @@ object Modeler {
       ,"SaleType"
       ,"SaleCondition"
     )
+
     for (fieldName <- oneHotEncodingFields) {
-      val (encodedFieldName, encoder) = SparkUtils.oneHotEncoding(fieldName)
+      val (encodedFieldName, encoder) = Utils.oneHotEncoding(fieldName)
 
       encodedFieldNames = encodedFieldNames ++ Array(encodedFieldName)
       oneHotEncoders = oneHotEncoders ++ encoder
     }
 
+    val sqlTrans = new SQLTransformer().setStatement(
+      "SELECT *, " +
+        "convertNumberToIntOrZero(LotFrontage) AS LotFrontage2 " +
+        "FROM __THIS__")
+
     val assembler = new VectorAssembler()
       .setInputCols(encodedFieldNames ++ Array(
-        "LotArea"
+        "LotFrontage2"
+        ,"LotArea"
         ,"YearBuilt"
         ,"MoSold"
         ,"YrSold"
@@ -122,7 +115,7 @@ object Modeler {
     val trainingEstimator = estimator.asInstanceOf[Estimator[_]]
 
     val pipeline = new Pipeline()
-      .setStages(oneHotEncoders ++ Array(sqlTransSkipMockupData, assembler, trainingEstimator))
+      .setStages(oneHotEncoders ++ Array(sqlTransSkipMockupData, sqlTrans, assembler, trainingEstimator))
 
     val pipelineModel = pipeline.fit(training)
 
@@ -140,6 +133,9 @@ object Modeler {
 
     val testRMSE = evaluator.evaluate(prediction)
     println("Test Data Set Root-Mean-Squared-Error: " + testRMSE)
+
+    val negativePredictionCount = prediction.where("prediction <= 0").count()
+    println("Test Data Set Negative Prediction Count: " + negativePredictionCount)
 
     pipelineModel
   }

@@ -1,6 +1,6 @@
 package gpcuster
 
-import gpcuster.kaggle.util.SparkUtils
+import gpcuster.kaggle.util.Utils
 import vegas._
 import vegas.sparkExt._
 
@@ -17,7 +17,7 @@ object VegasExample {
       mark(Bar).
       show
 
-    val df = SparkUtils.getSpark().createDataFrame(Seq(
+    val df = Utils.getSpark().createDataFrame(Seq(
       ("a", 1.0),
       ("b", 120.0),
       ("c", 23.1),

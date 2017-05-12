@@ -1,6 +1,6 @@
 package gpcuster.kaggle.houseprice
 
-import gpcuster.kaggle.util.SparkUtils
+import gpcuster.kaggle.util.Utils
 import org.apache.spark.sql.DataFrame
 import vegas._
 import vegas.sparkExt._
@@ -10,6 +10,8 @@ object Visualizer {
   def visualize(inputDF: DataFrame) = {
 
     inputDF.createOrReplaceTempView("inputTable")
+
+    inputDF.printSchema
 
     inputDF.show(10, false)
 

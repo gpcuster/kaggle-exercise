@@ -1,19 +1,20 @@
 package gpcuster.kaggle.houseprice
 
-import gpcuster.kaggle.util.SparkUtils
+import gpcuster.kaggle.util.{GlobalUDFs, Utils}
 
 object HousePrice {
   def main(args: Array[String]): Unit = {
+    GlobalUDFs.registerUDFs
     UDFs.registerUDFs
 
-    val trainingDF = SparkUtils.readCSV("src/main/resources/data/house_price/train.csv")
-    val testingDF = SparkUtils.readCSV("src/main/resources/data/house_price/test.csv")
+    val trainingDF = Utils.readCSV("src/main/resources/data/house_price/train.csv")
+    val testingDF = Utils.readCSV("src/main/resources/data/house_price/test.csv")
 
-    Visualizer.visualize(trainingDF)
-
+//    Visualizer.visualize(trainingDF)
+//
     val model = Modeler.getModel(trainingDF)
     val outputDF = Predictor.getOutputDF(testingDF, model)
 
-    SparkUtils.generateSubmissionFile("output/hourse_price/", outputDF)
+    Utils.generateSubmissionFile("output/hourse_price/", outputDF)
   }
 }

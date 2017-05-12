@@ -4,10 +4,11 @@ import java.text.SimpleDateFormat
 
 import org.apache.spark.SparkConf
 import org.apache.spark.ml.feature.{OneHotEncoder, StringIndexer}
+import org.apache.spark.ml.linalg.SparseVector
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.types.StructType
 
-object SparkUtils {
+object Utils {
   lazy val sdf:SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss")
 
   val OneHotEncoderFieldSuffix = "OHE"
@@ -28,7 +29,7 @@ object SparkUtils {
   }
 
   def readCSV(path: String, schema: StructType = null) = {
-    SparkUtils.getSpark().read.format("com.databricks.spark.csv")
+    Utils.getSpark().read.format("com.databricks.spark.csv")
       .option("header", "true") // Use first line of all files as header
       .option("inferSchema", "true") // Automatically infer data types
       .schema(schema)
@@ -51,14 +52,14 @@ object SparkUtils {
       path + "/" + runId
     }
 
-    SparkUtils.writeCSV(outputPath, df)
+    Utils.writeCSV(outputPath, df)
   }
 
   def oneHotEncoding(fieldName: String) = {
     val encodedFiledName = fieldName + OneHotEncoderFieldSuffix
     val si = new StringIndexer().setHandleInvalid("error").setInputCol(fieldName).setOutputCol(fieldName + "SI")
-    val onehot = new OneHotEncoder().setInputCol(fieldName + "SI").setOutputCol(encodedFiledName)
+    val oh = new OneHotEncoder().setInputCol(fieldName + "SI").setOutputCol(encodedFiledName)
 
-    (encodedFiledName, Array(si, onehot))
+    (encodedFiledName, Array(si, oh))
   }
 }
