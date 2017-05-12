@@ -1,10 +1,9 @@
 package gpcuster.kaggle.houseprice
 
 import gpcuster.kaggle.util.Utils
-import org.apache.spark.ml.classification.{DecisionTreeClassifier, NaiveBayes, RandomForestClassifier}
 import org.apache.spark.ml.evaluation.RegressionEvaluator
 import org.apache.spark.ml.feature.{SQLTransformer, VectorAssembler}
-import org.apache.spark.ml.regression.LinearRegression
+import org.apache.spark.ml.regression._
 import org.apache.spark.ml.{Estimator, Pipeline, PipelineStage, Transformer}
 import org.apache.spark.sql.DataFrame
 
@@ -29,14 +28,14 @@ object Modeler {
       ,"LotConfig"
       ,"LandSlope"
       ,"Neighborhood"
-      ,"Condition1" // Condition2
+      ,"Condition1", "Condition2"
       ,"BldgType"
       ,"HouseStyle"
       ,"OverallQual"
       ,"OverallCond"
       ,"RoofStyle"
       ,"RoofMatl"
-      ,"Exterior1st" // Exterior2nd
+      ,"Exterior1st", "Exterior2nd"
       ,"MasVnrType"
       ,"ExterQual"
       ,"ExterCond"
@@ -44,7 +43,7 @@ object Modeler {
       ,"BsmtQual"
       ,"BsmtCond"
       ,"BsmtExposure"
-      ,"BsmtFinType1" // BsmtFinType2
+      ,"BsmtFinType1", "BsmtFinType2"
       ,"Heating"
       ,"HeatingQC"
       ,"CentralAir"
@@ -54,10 +53,10 @@ object Modeler {
       ,"FireplaceQu"
       ,"GarageType"
       ,"GarageFinish"
-//      ,"GarageQual"
-//      ,"GarageCond"
+      ,"GarageQual"
+      ,"GarageCond"
       ,"PavedDrive"
-//      ,"PoolQC"
+      ,"PoolQC"
       ,"Fence"
       ,"MiscFeature"
       ,"SaleType"
@@ -127,25 +126,37 @@ object Modeler {
     val sqlTransSkipMockupData = new SQLTransformer().setStatement(
       "SELECT * FROM __THIS__ where Id > 0")
 
-    val alg = "lr"
+    val alg = "rf"
 
     val estimator = if (alg == "lr") {
       new LinearRegression()
-        .setMaxIter(150)
-        .setRegParam(0.000001)
+        .setMaxIter(200)
+        .setRegParam(0.0001)
+        .setElasticNetParam(0.5)
+        .setAggregationDepth(5)
+        .setLabelCol(labelCol)
+        .setFeaturesCol("features")
+    } else if (alg == "glr") {
+      new GeneralizedLinearRegression()
+        .setFamily("gaussian")
+        .setLink("identity")
+        .setMaxIter(200)
+        .setRegParam(0.0001)
         .setLabelCol(labelCol)
         .setFeaturesCol("features")
     } else if (alg == "dt") {
-      new DecisionTreeClassifier()
+      new DecisionTreeRegressor()
         .setLabelCol(labelCol)
         .setFeaturesCol("features")
     } else if (alg == "rf") {
-      new RandomForestClassifier()
+      new RandomForestRegressor()
         .setLabelCol(labelCol)
         .setFeaturesCol("features")
-        .setNumTrees(20)
-    } else if (alg == "nb") {
-      new NaiveBayes()
+        .setNumTrees(50)
+        .setMaxBins(100)
+        .setMaxDepth(20)
+    } else if (alg == "gbt") {
+      new GBTRegressor()
         .setLabelCol(labelCol)
         .setFeaturesCol("features")
     }
@@ -155,7 +166,7 @@ object Modeler {
     val pipeline = new Pipeline()
       .setStages(oneHotEncoders ++ intTransformers ++ Array(sqlTransSkipMockupData, sqlTrans, assembler, trainingEstimator))
 
-    val pipelineModel = pipeline.fit(training)
+    val pipelineModel = pipeline.fit(inputDF)
 
     val prediction = pipelineModel.transform(test)
 
