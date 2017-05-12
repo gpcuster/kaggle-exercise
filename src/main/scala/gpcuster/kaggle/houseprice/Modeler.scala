@@ -18,6 +18,9 @@ object Modeler {
 
     var encodedFieldNames = Array[String]()
     var oneHotEncoders = Array[PipelineStage]()
+    var intFieldNames = Array[String]()
+    var intTransformers = Array[PipelineStage]()
+
     val oneHotEncodingFields = Array(
       "MSSubClass"
       ,"MSZoning"
@@ -70,19 +73,33 @@ object Modeler {
       oneHotEncoders = oneHotEncoders ++ encoder
     }
 
+    val numberFields = Array(
+      "LotFrontage"
+      ,"LotArea"
+      ,"YearBuilt"
+      ,"MasVnrArea"
+      ,"BsmtFinSF1"
+      ,"BsmtFinSF2"
+      ,"MoSold"
+      ,"YrSold"
+      ,"MiscVal"
+    )
+
+    for (fieldName <- numberFields) {
+      val (convertedFieldName, encoder) = Utils.convertNumberToInt(fieldName)
+
+      intFieldNames = intFieldNames ++ Array(convertedFieldName)
+      intTransformers = intTransformers ++ encoder
+    }
+
     val sqlTrans = new SQLTransformer().setStatement(
-      "SELECT *, " +
-        "convertNumberToIntOrZero(LotFrontage) AS LotFrontage2 " +
+      "SELECT * " +
+        ", (YearRemodAdd - YearBuilt) AS RemodAdd " +
         "FROM __THIS__")
 
     val assembler = new VectorAssembler()
-      .setInputCols(encodedFieldNames ++ Array(
-        "LotFrontage2"
-        ,"LotArea"
-        ,"YearBuilt"
-        ,"MoSold"
-        ,"YrSold"
-        ,"MiscVal"
+      .setInputCols(encodedFieldNames ++ intFieldNames ++ Array(
+        "RemodAdd"
       ))
       .setOutputCol("features")
 
@@ -115,7 +132,7 @@ object Modeler {
     val trainingEstimator = estimator.asInstanceOf[Estimator[_]]
 
     val pipeline = new Pipeline()
-      .setStages(oneHotEncoders ++ Array(sqlTransSkipMockupData, sqlTrans, assembler, trainingEstimator))
+      .setStages(oneHotEncoders ++ intTransformers ++ Array(sqlTransSkipMockupData, sqlTrans, assembler, trainingEstimator))
 
     val pipelineModel = pipeline.fit(training)
 

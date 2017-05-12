@@ -3,15 +3,17 @@ package gpcuster.kaggle.util
 import java.text.SimpleDateFormat
 
 import org.apache.spark.SparkConf
-import org.apache.spark.ml.feature.{OneHotEncoder, StringIndexer}
-import org.apache.spark.ml.linalg.SparseVector
+import org.apache.spark.ml.feature.{OneHotEncoder, SQLTransformer, StringIndexer}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.types.StructType
 
 object Utils {
+  GlobalUDFs.registerUDFs
+
   lazy val sdf:SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss")
 
-  val OneHotEncoderFieldSuffix = "OHE"
+  val OneHotEncoderFieldSuffix = "_OHE"
+  val IntConverterFieldSuffix = "_INT"
 
   def getSpark() = {
     val conf = new SparkConf().setMaster("local[2]")
@@ -61,5 +63,14 @@ object Utils {
     val oh = new OneHotEncoder().setInputCol(fieldName + "SI").setOutputCol(encodedFiledName)
 
     (encodedFiledName, Array(si, oh))
+  }
+
+  def convertNumberToInt(fieldName: String, default: Int = 0) = {
+    val encodedFiledName = fieldName + IntConverterFieldSuffix
+
+    val sqlTrans = new SQLTransformer().setStatement(
+      s"""SELECT *, convertNumberToIntOrZero($fieldName) AS $encodedFiledName FROM __THIS__""")
+
+    (encodedFiledName, Array(sqlTrans))
   }
 }

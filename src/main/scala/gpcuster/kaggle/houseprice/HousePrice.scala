@@ -4,7 +4,6 @@ import gpcuster.kaggle.util.{GlobalUDFs, Utils}
 
 object HousePrice {
   def main(args: Array[String]): Unit = {
-    GlobalUDFs.registerUDFs
     UDFs.registerUDFs
 
     val trainingDF = Utils.readCSV("src/main/resources/data/house_price/train.csv")
