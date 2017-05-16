@@ -129,14 +129,13 @@ object Modeler {
     val sqlTransSkipMockupData = new SQLTransformer().setStatement(
       "SELECT * FROM __THIS__ where Id > 0")
 
-    val alg = "rf"
+    val alg = "lr"
 
     val estimator = if (alg == "lr") {
       new LinearRegression()
         .setMaxIter(200)
-        .setRegParam(0.0001)
-        .setElasticNetParam(0.5)
-        .setAggregationDepth(5)
+        .setRegParam(0.01)
+//        .setElasticNetParam(0.5)
         .setLabelCol(labelCol)
         .setFeaturesCol("features")
     } else if (alg == "glr") {
