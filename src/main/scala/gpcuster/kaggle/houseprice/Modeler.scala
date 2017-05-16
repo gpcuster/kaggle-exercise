@@ -6,12 +6,15 @@ import org.apache.spark.ml.feature.{SQLTransformer, VectorAssembler}
 import org.apache.spark.ml.regression._
 import org.apache.spark.ml.{Estimator, Pipeline, PipelineStage, Transformer}
 import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.functions.{col, log}
 
 object Modeler {
   def getModel(inputDF: DataFrame): Transformer = {
-    val labelCol = "SalePrice"
+    val labelCol = "SalePriceLog"
 
-    val Array(training, test) = inputDF.randomSplit(Array(0.7, 0.3), seed = 12345)
+    val inputDFWithLogPrice = inputDF.withColumn(labelCol, log(col("SalePrice") + 1))
+
+    val Array(training, test) = inputDFWithLogPrice.randomSplit(Array(0.7, 0.3), seed = 12345)
 
     var encodedFieldNames = Array[String]()
     var oneHotEncoders = Array[PipelineStage]()
@@ -166,7 +169,7 @@ object Modeler {
     val pipeline = new Pipeline()
       .setStages(oneHotEncoders ++ intTransformers ++ Array(sqlTransSkipMockupData, sqlTrans, assembler, trainingEstimator))
 
-    val pipelineModel = pipeline.fit(inputDF)
+    val pipelineModel = pipeline.fit(inputDFWithLogPrice)
 
     val prediction = pipelineModel.transform(test)
 

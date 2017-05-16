@@ -18,8 +18,10 @@ object Predictor {
       }
     }
 
+    println(prediction.schema)
+
     // use abs to make sure the price is positive.
-    val outputDF = prediction.withColumn("SalePrice", abs(col("prediction"))).select("Id", "SalePrice")
+    val outputDF = prediction.withColumn("SalePrice", exp(abs(col("prediction"))) - 1).select("Id", "SalePrice")
 
     outputDF
   }
