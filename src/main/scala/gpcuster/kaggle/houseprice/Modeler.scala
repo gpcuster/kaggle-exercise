@@ -4,6 +4,7 @@ import gpcuster.kaggle.util.Utils
 import org.apache.spark.ml.evaluation.RegressionEvaluator
 import org.apache.spark.ml.feature.{SQLTransformer, VectorAssembler}
 import org.apache.spark.ml.regression._
+import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
 import org.apache.spark.ml.{Estimator, Pipeline, PipelineStage, Transformer}
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions.{col, log}
@@ -14,8 +15,6 @@ object Modeler {
 
     val inputDFWithLogPrice = inputDF.withColumn(labelCol, log(col("SalePrice") + 1))
 
-    val Array(training, test) = inputDFWithLogPrice.randomSplit(Array(0.7, 0.3), seed = 12345)
-
     var encodedFieldNames = Array[String]()
     var oneHotEncoders = Array[PipelineStage]()
     var intFieldNames = Array[String]()
@@ -23,47 +22,47 @@ object Modeler {
 
     val oneHotEncodingFields = Array(
       "MSSubClass"
-      ,"MSZoning"
-      ,"Street"
-      ,"LotShape"
-      ,"LandContour"
-      ,"Utilities"
-      ,"LotConfig"
-      ,"LandSlope"
-      ,"Neighborhood"
-      ,"Condition1", "Condition2"
-      ,"BldgType"
-      ,"HouseStyle"
-      ,"OverallQual"
-      ,"OverallCond"
-      ,"RoofStyle"
-      ,"RoofMatl"
-      ,"Exterior1st", "Exterior2nd"
-      ,"MasVnrType"
-      ,"ExterQual"
-      ,"ExterCond"
-      ,"Foundation"
-      ,"BsmtQual"
-      ,"BsmtCond"
-      ,"BsmtExposure"
-      ,"BsmtFinType1", "BsmtFinType2"
-      ,"Heating"
-      ,"HeatingQC"
-      ,"CentralAir"
-      ,"Electrical"
-      ,"KitchenQual"
-      ,"Functional"
-      ,"FireplaceQu"
-      ,"GarageType"
-      ,"GarageFinish"
-      ,"GarageQual"
-      ,"GarageCond"
-      ,"PavedDrive"
-      ,"PoolQC"
-      ,"Fence"
-      ,"MiscFeature"
-      ,"SaleType"
-      ,"SaleCondition"
+//      ,"MSZoning"
+//      ,"Street"
+//      ,"LotShape"
+//      ,"LandContour"
+//      ,"Utilities"
+//      ,"LotConfig"
+//      ,"LandSlope"
+//      ,"Neighborhood"
+//      ,"Condition1", "Condition2"
+//      ,"BldgType"
+//      ,"HouseStyle"
+//      ,"OverallQual"
+//      ,"OverallCond"
+//      ,"RoofStyle"
+//      ,"RoofMatl"
+//      ,"Exterior1st", "Exterior2nd"
+//      ,"MasVnrType"
+//      ,"ExterQual"
+//      ,"ExterCond"
+//      ,"Foundation"
+//      ,"BsmtQual"
+//      ,"BsmtCond"
+//      ,"BsmtExposure"
+//      ,"BsmtFinType1", "BsmtFinType2"
+//      ,"Heating"
+//      ,"HeatingQC"
+//      ,"CentralAir"
+//      ,"Electrical"
+//      ,"KitchenQual"
+//      ,"Functional"
+//      ,"FireplaceQu"
+//      ,"GarageType"
+//      ,"GarageFinish"
+//      ,"GarageQual"
+//      ,"GarageCond"
+//      ,"PavedDrive"
+//      ,"PoolQC"
+//      ,"Fence"
+//      ,"MiscFeature"
+//      ,"SaleType"
+//      ,"SaleCondition"
     )
 
     for (fieldName <- oneHotEncodingFields) {
@@ -129,55 +128,37 @@ object Modeler {
     val sqlTransSkipMockupData = new SQLTransformer().setStatement(
       "SELECT * FROM __THIS__ where Id > 0")
 
-    val alg = "lr"
-
-    val estimator = if (alg == "lr") {
-      new LinearRegression()
+    val lr = new LinearRegression()
         .setMaxIter(200)
-        .setRegParam(0.01)
-//        .setElasticNetParam(0.5)
         .setLabelCol(labelCol)
         .setFeaturesCol("features")
-    } else if (alg == "glr") {
-      new GeneralizedLinearRegression()
-        .setFamily("gaussian")
-        .setLink("identity")
-        .setMaxIter(200)
-        .setRegParam(0.0001)
-        .setLabelCol(labelCol)
-        .setFeaturesCol("features")
-    } else if (alg == "dt") {
-      new DecisionTreeRegressor()
-        .setLabelCol(labelCol)
-        .setFeaturesCol("features")
-    } else if (alg == "rf") {
-      new RandomForestRegressor()
-        .setLabelCol(labelCol)
-        .setFeaturesCol("features")
-        .setNumTrees(50)
-        .setMaxBins(100)
-        .setMaxDepth(20)
-    } else if (alg == "gbt") {
-      new GBTRegressor()
-        .setLabelCol(labelCol)
-        .setFeaturesCol("features")
-    }
-
-    val trainingEstimator = estimator.asInstanceOf[Estimator[_]]
 
     val pipeline = new Pipeline()
-      .setStages(oneHotEncoders ++ intTransformers ++ Array(sqlTransSkipMockupData, sqlTrans, assembler, trainingEstimator))
-
-    val pipelineModel = pipeline.fit(inputDFWithLogPrice)
-
-    val prediction = pipelineModel.transform(test)
-
-    prediction.show
+      .setStages(oneHotEncoders ++ intTransformers ++ Array(sqlTransSkipMockupData, sqlTrans, assembler, lr))
 
     val evaluator = new RegressionEvaluator()
       .setLabelCol(labelCol)
       .setPredictionCol("prediction")
       .setMetricName("rmse")
+
+    val paramGrid = new ParamGridBuilder()
+      .addGrid(lr.regParam, Array(0.1, 0.01))
+      .build()
+
+    val cv = new CrossValidator()
+      .setEstimator(pipeline)
+      .setEvaluator(evaluator)
+      .setEstimatorParamMaps(paramGrid)
+      .setSeed(12345)
+      .setNumFolds(3)
+
+    val pipelineModel = cv.fit(inputDFWithLogPrice)
+
+    val Array(training, test) = inputDFWithLogPrice.randomSplit(Array(0.7, 0.3), seed = 12345)
+
+    val prediction = pipelineModel.transform(test)
+
+    prediction.show
 
     val trainingRMSE = evaluator.evaluate(pipelineModel.transform(training))
     println("Training Data Set Root-Mean-Squared-Error: " + trainingRMSE)
