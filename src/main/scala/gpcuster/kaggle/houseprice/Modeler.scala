@@ -5,7 +5,7 @@ import org.apache.spark.ml.evaluation.RegressionEvaluator
 import org.apache.spark.ml.feature.{SQLTransformer, VectorAssembler}
 import org.apache.spark.ml.regression._
 import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
-import org.apache.spark.ml.{Estimator, Pipeline, PipelineStage, Transformer}
+import org.apache.spark.ml.{Pipeline, PipelineStage, Transformer}
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions.{col, log}
 
@@ -154,17 +154,12 @@ object Modeler {
 
     val pipelineModel = cv.fit(inputDFWithLogPrice)
 
-    val Array(training, test) = inputDFWithLogPrice.randomSplit(Array(0.7, 0.3), seed = 12345)
-
-    val prediction = pipelineModel.transform(test)
+    val prediction = pipelineModel.transform(inputDFWithLogPrice)
 
     prediction.show
 
-    val trainingRMSE = evaluator.evaluate(pipelineModel.transform(training))
-    println("Training Data Set Root-Mean-Squared-Error: " + trainingRMSE)
-
-    val testRMSE = evaluator.evaluate(prediction)
-    println("Test Data Set Root-Mean-Squared-Error: " + testRMSE)
+    val trainingRMSE = evaluator.evaluate(prediction)
+    println("Training Root-Mean-Squared-Error: " + trainingRMSE)
 
     val negativePredictionCount = prediction.where("prediction <= 0").count()
     println("Test Data Set Negative Prediction Count: " + negativePredictionCount)
