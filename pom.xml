@@ -32,10 +32,15 @@
       <artifactId>vegas-spark_2.11</artifactId>
       <version>0.3.9</version>
     </dependency>
+    <!--<dependency>-->
+      <!--<groupId>ml.dmlc</groupId>-->
+      <!--<artifactId>xgboost-jvm</artifactId>-->
+      <!--<version>0.7</version>-->
+    <!--</dependency>-->
     <dependency>
-      <groupId>ml.dmlc</groupId>
-      <artifactId>xgboost-jvm</artifactId>
-      <version>0.7</version>
+      <groupId>edu.berkeley.cs.amplab</groupId>
+      <artifactId>keystoneml_2.11</artifactId>
+      <version>0.4.0</version>
     </dependency>
 
     <dependency>

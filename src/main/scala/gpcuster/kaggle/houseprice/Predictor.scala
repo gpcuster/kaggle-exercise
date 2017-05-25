@@ -11,15 +11,6 @@ object Predictor {
     val negativePredictionCount = prediction.where("prediction <= 0").count()
     println("Prediction Data Set Negative Prediction Count: " + negativePredictionCount)
 
-    val convertPrediction = udf {
-      prediction: Double => prediction match {
-        case  survived if survived > 0 => 1
-        case _ => 0
-      }
-    }
-
-    println(prediction.schema)
-
     // use abs to make sure the price is positive.
     val outputDF = prediction.withColumn("SalePrice", exp(abs(col("prediction"))) - 1).select("Id", "SalePrice")
 
