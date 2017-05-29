@@ -15,7 +15,10 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{IntegerType, StructField, StructType}
 
-object Digit {
+/**
+  * This is demo using KeystoneML framework, just trying to play with it.
+  */
+object KeystoneMLDemo {
   def loadCSV(sc: SparkContext, path: String): RDD[DenseVector[Double]] = {
     sc.textFile(path).filter(str => str(0).isDigit).map(row => DenseVector(row.split(",").map(_.toDouble)))
   }
