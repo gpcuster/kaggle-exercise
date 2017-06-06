@@ -1,4 +1,4 @@
-package gpcuster.kaggle.digit
+package gpcuster.kaggle.digit.tensorflow
 
 import gpcuster.kaggle.util.Utils
 
@@ -9,9 +9,9 @@ object DigitRecognizer {
 
     //    Visualizer.visualize(trainingDF)
     //
-    val model = Modeler.getModel(trainingDF)
-    val outputDF = Predictor.getOutputDF(testingDF, model)
-
-    Utils.generateSubmissionFile("output/digit/", outputDF)
+//    val model = Modeler.getModel(trainingDF)
+//    val outputDF = Predictor.getOutputDF(testingDF, model)
+//
+//    Utils.generateSubmissionFile("output/digit/", outputDF)
   }
 }

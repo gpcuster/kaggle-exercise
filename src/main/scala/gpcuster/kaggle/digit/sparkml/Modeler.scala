@@ -1,4 +1,4 @@
-package gpcuster.kaggle.digit
+package gpcuster.kaggle.digit.sparkml
 
 import org.apache.spark.ml.classification.RandomForestClassifier
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator

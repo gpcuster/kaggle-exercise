@@ -1,4 +1,4 @@
-package gpcuster.kaggle.digit
+package gpcuster.kaggle.digit.sparkml
 
 import gpcuster.kaggle.util.Utils
 import org.apache.spark.ml.Transformer
