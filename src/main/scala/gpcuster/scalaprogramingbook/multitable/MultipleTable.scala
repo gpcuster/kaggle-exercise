@@ -1,4 +1,4 @@
-package gpcuster.scalaprogramingbook.rational
+package gpcuster.scalaprogramingbook.multitable
 
 object MultipleTable {
 
